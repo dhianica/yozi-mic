@@ -27,15 +27,23 @@ if (navigator.mediaDevices.getUserMedia) {
     const mediaRecorder = new MediaRecorder(stream);
 
     visualize(stream);
+	
+	
+	stream.onaddtrack = (event) => {
+		console.log('aaa');
+	  console.log(`New ${event.track.kind} track added`);
+	};
 
     record.onclick = function() {
       mediaRecorder.start();
-      console.log(mediaRecorder.state);
-      console.log("recorder started");
-      record.style.background = "red";
-
-      stop.disabled = false;
-      record.disabled = true;
+      //console.log(mediaRecorder.state);
+      //console.log("recorder started");
+      //console.log(mediaRecorder);
+	  //console.log(mediaRecorder.requestData());
+      //record.style.background = "red";
+		//
+      //stop.disabled = false;
+      //record.disabled = true;
     }
 
     stop.onclick = function() {
@@ -45,11 +53,24 @@ if (navigator.mediaDevices.getUserMedia) {
       record.style.background = "";
       record.style.color = "";
       // mediaRecorder.requestData();
-
+		
       stop.disabled = true;
       record.disabled = false;
     }
-
+	
+	
+	
+	mediaRecorder.onstart = function() {
+	  console.log(mediaRecorder.state);
+      console.log("recorder started");
+      record.style.background = "red";
+		
+      stop.disabled = false;
+      record.disabled = true;
+      console.log("data jalan-jalan");
+	}
+	
+	
     mediaRecorder.onstop = function(e) {
       console.log("data available after MediaRecorder.stop() called.");
 
@@ -77,10 +98,28 @@ if (navigator.mediaDevices.getUserMedia) {
       soundClips.appendChild(clipContainer);
 
       audio.controls = true;
-      const blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
+      const blob = new Blob(chunks, { 'type' : 'audio/mpeg; codecs=opus' });
+	  
       chunks = [];
       const audioURL = window.URL.createObjectURL(blob);
+	  console.log("ini data audioURL" + audioURL);
       audio.src = audioURL;
+	  
+	  saveAs(blob, "static.mp3");
+	  const file = new File([blob], "tes.mp3", {
+		  type: blob.type,
+		});
+	  
+	  console.log(file);
+	  //var a = document.createElement("a");
+	  //document.body.appendChild(a);
+	  //a.style = "display: none";
+	  //a.href = audioURL;
+	  //a.download = "test.webm";
+	  //a.click();
+	  //window.URL.revokeObjectURL(audioURL);
+	  
+	  
       console.log("recorder stopped");
 
       deleteButton.onclick = function(e) {
@@ -100,18 +139,36 @@ if (navigator.mediaDevices.getUserMedia) {
     }
 
     mediaRecorder.ondataavailable = function(e) {
+      console.log(mediaRecorder.requestData());
       chunks.push(e.data);
     }
   }
+  
 
+
+  
   let onError = function(err) {
     console.log('The following error occured: ' + err);
   }
 
   navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
+  
+  //navigator.mediaDevices.getDisplayMedia(displayMediaOptions).then(onSuccess, onError);
 
 } else {
    console.log('getUserMedia not supported on your browser!');
+}
+
+async function startCapture(displayMediaOptions) {
+  let captureStream = null;
+
+  try {
+	  console.error("displayMediaOptions: " + displayMediaOptions);
+    //captureStream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+  } catch(err) {
+    console.error("Error: " + err);
+  }
+  return captureStream;
 }
 
 function visualize(stream) {
